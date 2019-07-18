@@ -40,9 +40,10 @@ jour_j <- as.character(Sys.Date())
 jour_j1 <- as.character(Sys.Date() +1)
 jour_j2 <- as.character(Sys.Date() +2)
 # récupération du run de midi
-ref_time <- paste0(jour_j,'T12:00:00')
+ref_time <- paste0(jour_j,'T18:00:00')
 
 # token pour accéder aux geoservices de meteo france (à demander à support.inspire@meteo.fr)
+
 token_MF <- 'XXXX'
 # emprise géographique en wgs84
 lat_min <- 39
@@ -202,9 +203,6 @@ list.files(path = "./img", pattern = paste0("carto_pluie_cumul_",jour_j1), full.
 
 
 library(rtweet)
-
-
-
 
 # http://rtweet.info/articles/auth.html
 # post du tweet et de l'image HD
