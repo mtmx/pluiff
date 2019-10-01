@@ -17,7 +17,6 @@ library(fields)
 library(cartography)
 library(png)
 
-
 # import couches carto
 comm.sel <- st_read("./carto/comm_sel.shp")
 fr <- st_read( "./carto/fr.shp")
@@ -43,7 +42,7 @@ jour_j2 <- as.character(Sys.Date() +2)
 ref_time <- paste0(jour_j,'T12:00:00')
 
 # token pour accéder aux geoservices de meteo france (à demander à support.inspire@meteo.fr)
-token <- 'XXX'
+#token <- 'XXX'
 # emprise géographique en wgs84
 lat_min <- 39
 lat_max <- 53
@@ -52,7 +51,24 @@ lon_max <- 13
 bornes_lat <- paste0(as.character(lat_min),',',as.character(lat_max))
 bornes_long <- paste0(as.character(lon_min),',',as.character(lon_max))
 
+## téléchargment avec relance après échec
+download.file.trycatch <- function(url, destfile , method){
+  tryCatch(
+    # premier essai
+    {
+      download.file(url, destfile , method)
+    },
+    # nouvel essai
+    error=function(error_message) {
+      message("retry in 10 seconds")
+      Sys.sleep(10)
+      download.file.trycatch(url, destfile , method)
+    }
+  )
+}
 
+
+# téléchargement et nettoyage des tiffs
 get_tiff <- function(H){
   
   # horaire + 1 heure pour récupérer les precipitations tombées dans l'heure précédente
@@ -60,11 +76,19 @@ get_tiff <- function(H){
     mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
   
   # quantité de précipitation
-  indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
+  #indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
+  indic <- 'TOTAL_WATER_PRECIPITATION__GROUND_OR_WATER_SURFACE'
   modele <- '001'
   url_data <- paste0('https://geoservices.meteofrance.fr/api/',token,'/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
   # téléchargement du tiff
-  download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),mode="wb")
+  #download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),mode="wb")
+  # download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl")
+  download.file.trycatch(url = url_data, 
+                         destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),
+                         method = "libcurl")
+  # download_retry(url = url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl", N.TRIES = 10)
+  # resoudre probleme fail dl ? https://cran.r-project.org/web/packages/downloader/downloader.pdf
+  
   # lecture en spatial grid data frame
   tif <- readGDAL(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
   #transformation en raster en proj wgs 84 avec bornes lat/long
@@ -195,7 +219,12 @@ list.files(path = "./img", pattern = paste0("carto_pluie_cumul_",jour_j1), full.
 library(rtweet)
 # authentication du compte twitter
 # http://rtweet.info/articles/auth.html
+
+# pb sur les tweets sans texte
+#https://github.com/mkearney/rtweet/issues/329
+#devtools::install_version("rtweet", version = "0.6.8", repos = "http://cran.us.r-project.org")
+
 # post du tweet et de l'image HD
-post_tweet("", media = paste0("./gif/gif_meteo_cumul_v1_prev",jour_j1,".gif"))
-post_tweet("", media = paste0("./img/carto_pluie_cumul_",jour_j1,"_24.png"))
+post_tweet(status = "", media = paste0("./gif/gif_meteo_cumul_v1_prev",jour_j1,".gif"))
+post_tweet(status = "", media = paste0("./img/carto_pluie_cumul_",jour_j1,"_24.png"))
 
