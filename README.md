@@ -6,7 +6,7 @@
 
 Pluiff est réalisé grâce aux données ouvertes publiées par **Meteo-France**. ~ tous les soirs, il :
 
-- récupère les données de prévisions de précipitation à J+1 du [modèle Arpège](https://donneespubliques.meteofrance.fr/?fond=produit&id_produit=131&id_rubrique=51)  mises à disposition en J à 12h par Météo-France (en licence ouverte etalab 👍 ).
+- récupère les données de prévisions de précipitation à J+1 du [modèle Arome](https://donneespubliques.meteofrance.fr/?fond=produit&id_produit=131&id_rubrique=51)  mises à disposition en J à 17h par Météo-France (en licence ouverte etalab 👍 ).
 
 - géoréférence les 24 images HD au format tiff, correspondant aux prévisions de la quantité de précipitations heure par heure sur J+1
 
