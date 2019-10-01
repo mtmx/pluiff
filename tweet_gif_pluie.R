@@ -17,10 +17,18 @@ library(fields)
 library(cartography)
 library(png)
 
+<<<<<<< HEAD
 # import couches carto
 comm.sel <- st_read("./carto/comm_sel.shp")
 fr <- st_read( "./carto/fr.shp")
 pays_ned <- st_read( "./carto/pays_ned.shp")
+=======
+
+# # import couches carto
+# comm.sel <- st_read("./carto/comm_sel.shp")
+# fr <- st_read( "./carto/fr.shp")
+# pays_ned <- st_read( "./carto/pays_ned.shp")
+>>>>>>> 0df00869acfd62e4b6c70dbffe7382252b06a531
 
 # affichage des logos
 logoing_func<-function(logo, x, y, size){
@@ -39,10 +47,15 @@ jour_j <- as.character(Sys.Date())
 jour_j1 <- as.character(Sys.Date() +1)
 jour_j2 <- as.character(Sys.Date() +2)
 # récupération du run de midi
-ref_time <- paste0(jour_j,'T12:00:00')
+ref_time <- paste0(jour_j,'T18:00:00')
 
 # token pour accéder aux geoservices de meteo france (à demander à support.inspire@meteo.fr)
+<<<<<<< HEAD
 #token <- 'XXX'
+=======
+
+token_MF <- 'XXXX'
+>>>>>>> 0df00869acfd62e4b6c70dbffe7382252b06a531
 # emprise géographique en wgs84
 lat_min <- 39
 lat_max <- 53
@@ -79,7 +92,9 @@ get_tiff <- function(H){
   #indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
   indic <- 'TOTAL_WATER_PRECIPITATION__GROUND_OR_WATER_SURFACE'
   modele <- '001'
-  url_data <- paste0('https://geoservices.meteofrance.fr/api/',token,'/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
+  url_data <- paste0('https://geoservices.meteofrance.fr/api/',token_MF,'/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
+  
+  
   # téléchargement du tiff
   #download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),mode="wb")
   # download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl")
@@ -215,9 +230,15 @@ list.files(path = "./img", pattern = paste0("carto_pluie_cumul_",jour_j1), full.
   image_write(paste0("./gif/gif_meteo_cumul_v1_prev",jour_j1,".gif")) 
 
 
+## install httpuv if not already
+# if (!requireNamespace("httpuv", quietly = TRUE)) {
+#   install.packages("httpuv")
+# }
+#library(httpuv)
+
 
 library(rtweet)
-# authentication du compte twitter
+
 # http://rtweet.info/articles/auth.html
 
 # pb sur les tweets sans texte
