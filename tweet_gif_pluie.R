@@ -1,14 +1,10 @@
 
 # chargement des libraires
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 library(stringr)
 library(raster)
 library(rgdal)
-library(raster)
-library(tidyverse)
-library(stringr)
-library(lubridate)
 library(sf)
 library(scales)
 library(viridis)
@@ -16,6 +12,9 @@ library(animation)
 library(fields)
 library(cartography)
 library(png)
+library(magick)
+library(rtweet)
+
 
 # import couches carto
 comm.sel <- st_read("./carto/comm_sel.shp")
@@ -42,7 +41,8 @@ jour_j2 <- as.character(Sys.Date() +2)
 ref_time <- paste0(jour_j,'T12:00:00')
 
 # token pour accéder aux geoservices de meteo france (à demander à support.inspire@meteo.fr)
-#token <- 'XXX'
+token_MF <- Sys.getenv("MF_TOKEN")
+
 # emprise géographique en wgs84
 lat_min <- 39
 lat_max <- 53
@@ -76,10 +76,13 @@ get_tiff <- function(H){
     mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
   
   # quantité de précipitation
-  #indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
-  indic <- 'TOTAL_WATER_PRECIPITATION__GROUND_OR_WATER_SURFACE'
+  indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
+  #indic <- 'TOTAL_WATER_PRECIPITATION__GROUND_OR_WATER_SURFACE'
   modele <- '001'
-  url_data <- paste0('https://geoservices.meteofrance.fr/api/',token,'/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
+  url_data <- paste0('https://geoservices.meteofrance.fr/api/',token_MF,'/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
+  
+  # url_data <- paste0('https://public-api.meteofrance.fr/public/arome/1.0/wcs/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS/GetCoverage?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
+  # 
   # téléchargement du tiff
   #download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),mode="wb")
   # download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl")
@@ -114,6 +117,8 @@ get_tiff <- function(H){
 liste_H <- seq(0,24,1) %>% as.character() %>% str_pad(., 2, pad = "0")
 # recupéreration de tous les tiffs (sauf h00)
 liste_H[-1] %>% purrr::map(get_tiff)
+
+
 
 # ajouter couche H0
 r_precip_00 <- r_precip_01
@@ -202,7 +207,6 @@ c(1:25) %>% purrr::map(plot_png)
 
 ###################
 # création du gif
-library(magick)
 
 list.files(path = "./img", pattern = paste0("carto_pluie_cumul_",jour_j1), full.names = TRUE) %>%
   sort() %>% 
@@ -215,16 +219,25 @@ list.files(path = "./img", pattern = paste0("carto_pluie_cumul_",jour_j1), full.
   image_write(paste0("./gif/gif_meteo_cumul_v1_prev",jour_j1,".gif")) 
 
 
-
-library(rtweet)
 # authentication du compte twitter
 # http://rtweet.info/articles/auth.html
+## store api keys (these are fake example values; replace with your own keys)
+
+
+pluiff_token <- rtweet::create_token(
+  app = "rtweet_plouif",
+  consumer_key =    Sys.getenv("TWITTER_API_KEY"),
+  consumer_secret = Sys.getenv("TWITTER_API_KEY_SECRET"),
+  access_token =    Sys.getenv("TWITTER_ACCESS_TOKEN"),
+  access_secret =   Sys.getenv("TWITTER_ACCESS_TOKEN_SECRET")
+)
+
 
 # pb sur les tweets sans texte
 #https://github.com/mkearney/rtweet/issues/329
 #devtools::install_version("rtweet", version = "0.6.8", repos = "http://cran.us.r-project.org")
 
 # post du tweet et de l'image HD
-post_tweet(status = "", media = paste0("./gif/gif_meteo_cumul_v1_prev",jour_j1,".gif"))
-post_tweet(status = "", media = paste0("./img/carto_pluie_cumul_",jour_j1,"_24.png"))
+post_tweet(status = "", media = paste0("./gif/gif_meteo_cumul_v1_prev",jour_j1,".gif"), token = pluiff_token)
+post_tweet(status = "", media = paste0("./img/carto_pluie_cumul_",jour_j1,"_24.png"), token = pluiff_token)
 

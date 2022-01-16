@@ -38,6 +38,8 @@ if (dir.exists("/tmp/ADMINEXPRESS_1-0__SHP_LAMB93_FXX_2017-01-18")) {
 
 # shapes contours france
 fr <- comm %>% mutate(dep = substr(CODGEO, 1,2))  %>% summarise(POPULATION = sum(POPULATION))
+dep <- comm %>% mutate(dep = substr(CODGEO, 1,2))  %>% group_by(dep) %>% summarise(POPULATION = sum(POPULATION))
+dep_ctr <- dep %>% st_centroid(of_largest_polygon = T)
 #fr.sp <- as(fr , 'Spatial')
 
 # sélection de communes majeures
