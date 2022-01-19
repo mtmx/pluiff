@@ -68,8 +68,58 @@ download.file.trycatch <- function(url, destfile , method){
 }
 
 
-# téléchargement et nettoyage des tiffs
-get_tiff <- function(H){
+# # téléchargement et nettoyage des tiffs
+# get_tiff <- function(H){
+#   
+#   # horaire + 1 heure pour récupérer les precipitations tombées dans l'heure précédente
+#   time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
+#     mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+#   
+#   # quantité de précipitation
+#   indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
+#   #indic <- 'TOTAL_WATER_PRECIPITATION__GROUND_OR_WATER_SURFACE'
+#   modele <- '001'
+#   url_data <- paste0('https://geoservices.meteofrance.fr/api/',token_MF,'/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
+#   
+#   # url_data <- paste0('https://public-api.meteofrance.fr/public/arome/1.0/wcs/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS/GetCoverage?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
+#   # 
+#   # téléchargement du tiff
+#   #download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),mode="wb")
+#   # download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl")
+#   download.file.trycatch(url = url_data, 
+#                          destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),
+#                          method = "libcurl")
+#   # download_retry(url = url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl", N.TRIES = 10)
+#   # resoudre probleme fail dl ? https://cran.r-project.org/web/packages/downloader/downloader.pdf
+#   
+#   # lecture en spatial grid data frame
+#   tif <- readGDAL(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
+#   #transformation en raster en proj wgs 84 avec bornes lat/long
+#   gridded(tif) <- TRUE
+#   r <- raster(tif)
+#   xmin(r) <- lon_min
+#   xmax(r) <- lon_max
+#   ymin(r) <- lat_min
+#   ymax(r) <- lat_max
+#   crs(r) <- "+proj=longlat +datum=WGS84"
+#   
+#   # conversion en lambert 93
+#   l93 <- "+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+#   r <- projectRaster(r, crs = l93)
+#   assign(paste0("r_precip_",H), r,  envir=globalenv())
+#   # #suppression du fichier tiff
+#   if (file.exists(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff')))
+#     file.remove(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
+#   
+# }
+# 
+# # liste des 24 heures en caractere
+# liste_H <- seq(0,24,1) %>% as.character() %>% str_pad(., 2, pad = "0")
+# # recupéreration de tous les tiffs (sauf h00)
+# liste_H[-1] %>% purrr::map(get_tiff)
+
+# téléchargement des tiffs
+dl_tiff <- function(H){
   
   # horaire + 1 heure pour récupérer les precipitations tombées dans l'heure précédente
   time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
@@ -92,7 +142,25 @@ get_tiff <- function(H){
   # download_retry(url = url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl", N.TRIES = 10)
   # resoudre probleme fail dl ? https://cran.r-project.org/web/packages/downloader/downloader.pdf
   
-  # lecture en spatial grid data frame
+  
+}
+
+# liste des 24 heures en caractere
+liste_H <- seq(0,24,1) %>% as.character() %>% str_pad(., 2, pad = "0")
+# recupéreration de tous les tiffs (sauf h00)
+liste_H[-1] %>% purrr::map(dl_tiff)
+
+# lecture en spatial grid data frame
+rd_tiff <- function(H){
+  
+    # horaire + 1 heure pour récupérer les precipitations tombées dans l'heure précédente
+    time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
+      mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+
+    # quantité de précipitation
+    indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
+    modele <- '001'
+  
   tif <- readGDAL(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
   #transformation en raster en proj wgs 84 avec bornes lat/long
   gridded(tif) <- TRUE
@@ -107,18 +175,31 @@ get_tiff <- function(H){
   l93 <- "+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
   r <- projectRaster(r, crs = l93)
   assign(paste0("r_precip_",H), r,  envir=globalenv())
-  # #suppression du fichier tiff
+  # assign(paste0("r_precip_",H), r)
+  
+}
+
+# recupéreration de tous les tiffs (sauf h00)
+liste_H[-1] %>% purrr::map(rd_tiff)
+
+# #suppression des tiff
+rm_tiff <- function(H){
+  
+    # horaire + 1 heure pour récupérer les precipitations tombées dans l'heure précédente
+    time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
+      mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+
+    # quantité de précipitation
+    indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
+    modele <- '001'
+    
   if (file.exists(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff')))
     file.remove(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
   
 }
 
-# liste des 24 heures en caractere
-liste_H <- seq(0,24,1) %>% as.character() %>% str_pad(., 2, pad = "0")
 # recupéreration de tous les tiffs (sauf h00)
-liste_H[-1] %>% purrr::map(get_tiff)
-
-
+liste_H[-1] %>% purrr::map(rm_tiff)
 
 # ajouter couche H0
 r_precip_00 <- r_precip_01
