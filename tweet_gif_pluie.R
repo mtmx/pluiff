@@ -147,6 +147,7 @@ dl_tiff <- function(H){
 
 # liste des 24 heures en caractere
 liste_H <- seq(0,24,1) %>% as.character() %>% str_pad(., 2, pad = "0")
+print(liste_H)
 # recupéreration de tous les tiffs (sauf h00)
 liste_H[-1] %>% purrr::map(dl_tiff)
 
