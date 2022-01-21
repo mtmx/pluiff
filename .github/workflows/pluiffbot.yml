@@ -3,7 +3,7 @@ name: tweet_pluiff
 # Controls when the action will run.
 on:
   schedule:
-    - cron:  '20 18 * * *'
+    - cron:  '0 19 * * *'
 #on:
 #  push:
 #    branches:
