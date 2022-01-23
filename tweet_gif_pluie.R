@@ -147,9 +147,35 @@ dl_tiff <- function(H){
 
 # liste des 24 heures en caractere
 liste_H <- seq(0,24,1) %>% as.character() %>% str_pad(., 2, pad = "0")
-print(liste_H)
-# recupéreration de tous les tiffs (sauf h00)
-liste_H[-1] %>% purrr::map(dl_tiff)
+# print(liste_H)
+# # recupéreration de tous les tiffs (sauf h00)
+# liste_H[-1] %>% purrr::map(dl_tiff)
+
+# mano
+dl_tiff("01")
+dl_tiff("02")
+dl_tiff("03")
+dl_tiff("04")
+dl_tiff("05")
+dl_tiff("06")
+dl_tiff("07")
+dl_tiff("08")
+dl_tiff("09")
+dl_tiff("10")
+dl_tiff("11")
+dl_tiff("12")
+dl_tiff("13")
+dl_tiff("14")
+dl_tiff("15")
+dl_tiff("16")
+dl_tiff("17")
+dl_tiff("18")
+dl_tiff("19")
+dl_tiff("20")
+dl_tiff("21")
+dl_tiff("22")
+dl_tiff("23")
+dl_tiff("24")
 
 # lecture en spatial grid data frame
 rd_tiff <- function(H){
@@ -181,7 +207,33 @@ rd_tiff <- function(H){
 }
 
 # recupéreration de tous les tiffs (sauf h00)
-liste_H[-1] %>% purrr::map(rd_tiff)
+# liste_H[-1] %>% purrr::map(rd_tiff)
+
+# mano
+rd_tiff("01")
+rd_tiff("02")
+rd_tiff("03")
+rd_tiff("04")
+rd_tiff("05")
+rd_tiff("06")
+rd_tiff("07")
+rd_tiff("08")
+rd_tiff("09")
+rd_tiff("10")
+rd_tiff("11")
+rd_tiff("12")
+rd_tiff("13")
+rd_tiff("14")
+rd_tiff("15")
+rd_tiff("16")
+rd_tiff("17")
+rd_tiff("18")
+rd_tiff("19")
+rd_tiff("20")
+rd_tiff("21")
+rd_tiff("22")
+rd_tiff("23")
+rd_tiff("24")
 
 # #suppression des tiff
 rm_tiff <- function(H){
@@ -200,7 +252,33 @@ rm_tiff <- function(H){
 }
 
 # recupéreration de tous les tiffs (sauf h00)
-liste_H[-1] %>% purrr::map(rm_tiff)
+# liste_H[-1] %>% purrr::map(rm_tiff)
+
+# mano
+rm_tiff("01")
+rm_tiff("02")
+rm_tiff("03")
+rm_tiff("04")
+rm_tiff("05")
+rm_tiff("06")
+rm_tiff("07")
+rm_tiff("08")
+rm_tiff("09")
+rm_tiff("10")
+rm_tiff("11")
+rm_tiff("12")
+rm_tiff("13")
+rm_tiff("14")
+rm_tiff("15")
+rm_tiff("16")
+rm_tiff("17")
+rm_tiff("18")
+rm_tiff("19")
+rm_tiff("20")
+rm_tiff("21")
+rm_tiff("22")
+rm_tiff("23")
+rm_tiff("24")
 
 # ajouter couche H0
 r_precip_00 <- r_precip_01
@@ -217,6 +295,7 @@ names(r_precip.stack) <- liste_r_H
 
 ######################
 ########## carte
+######################
 
 # palette de couleurs et valeurs
 col_pal <- viridis(100, alpha = 0.55, option = "A") %>% rev()
