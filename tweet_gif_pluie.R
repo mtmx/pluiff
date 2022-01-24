@@ -14,6 +14,7 @@ library(cartography)
 library(png)
 library(magick)
 library(rtweet)
+library(purrr)
 
 
 # import couches carto
@@ -135,10 +136,10 @@ dl_tiff <- function(H){
   # 
   # téléchargement du tiff
   #download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),mode="wb")
-  download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl")
-  # download.file.trycatch(url = url_data, 
-  #                        destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),
-  #                        method = "libcurl")
+  # download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl")
+  download.file.trycatch(url = url_data, 
+                         destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),
+                         method = "libcurl")
   # download_retry(url = url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl", N.TRIES = 10)
   # resoudre probleme fail dl ? https://cran.r-project.org/web/packages/downloader/downloader.pdf
   
@@ -151,7 +152,6 @@ print(liste_H)
 # recupéreration de tous les tiffs (sauf h00)
 liste_H[-1] %>% purrr::map(dl_tiff)
 
-#
 
 # lecture en spatial grid data frame
 rd_tiff <- function(H){
