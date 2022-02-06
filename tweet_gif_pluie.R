@@ -39,31 +39,53 @@ jour_j <- as.character(Sys.Date())
 jour_j1 <- as.character(Sys.Date() +1)
 jour_j2 <- as.character(Sys.Date() +2)
 # récupération du run de midi
-ref_time <- paste0(jour_j,'T12:00:00')
+# ref_time <- paste0(jour_j,'T12:00:00')
+ref_time <- paste0(jour_j,'T12%3A00%3A00')
 
 # token pour accéder aux geoservices de meteo france (à demander à support.inspire@meteo.fr)
-token_MF <- Sys.getenv("MF_TOKEN")
+MF_TOKEN <- Sys.getenv("MF_TOKEN")
 
 # emprise géographique en wgs84
 lat_min <- 39
 lat_max <- 53
 lon_min <- -8
 lon_max <- 13
-bornes_lat <- paste0(as.character(lat_min),',',as.character(lat_max))
-bornes_long <- paste0(as.character(lon_min),',',as.character(lon_max))
+# bornes_lat <- paste0(as.character(lat_min),',',as.character(lat_max))
+# bornes_long <- paste0(as.character(lon_min),',',as.character(lon_max))
+bornes_lat <- paste0(as.character(lat_min),'%2C',as.character(lat_max))
+bornes_long <- paste0(as.character(lon_min),'%2C',as.character(lon_max))
+
+
+# ## téléchargment avec relance après échec
+# download.file.trycatch <- function(url, destfile , headers){
+#   tryCatch(
+#     # premier essai
+#     {
+#       download.file(url, destfile , headers)
+#     },
+#     # nouvel essai
+#     error=function(error_message) {
+#       message("retry in 10 seconds")
+#       Sys.sleep(10)
+#       download.file.trycatch(url, destfile , headers)
+#     }
+#   )
+# }
 
 ## téléchargment avec relance après échec
-download.file.trycatch <- function(url, destfile , method){
+download.file.trycatch <- function(url, destfile){
   tryCatch(
     # premier essai
     {
-      download.file(url, destfile , method)
+      download.file(url, destfile,
+                    headers = c(apikey=MF_TOKEN))
     },
     # nouvel essai
     error=function(error_message) {
       message("retry in 10 seconds")
       Sys.sleep(10)
-      download.file.trycatch(url, destfile , method)
+      download.file.trycatch(url, destfile,
+                             headers = c(apikey=MF_TOKEN) )
     }
   )
 }
@@ -123,32 +145,34 @@ download.file.trycatch <- function(url, destfile , method){
 dl_tiff <- function(H){
   
   # horaire + 1 heure pour récupérer les precipitations tombées dans l'heure précédente
-  time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
-    mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+  # time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
+  #   mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+  time <- data_frame(time = paste0( jour_j1,'T',H,'%3A00%3A00')) %>%
+    mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00%3A00%3A00'), time)) %>% as.character()
   
   # quantité de précipitation
   indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
   #indic <- 'TOTAL_WATER_PRECIPITATION__GROUND_OR_WATER_SURFACE'
   modele <- '001'
-  url_data <- paste0('https://geoservices.meteofrance.fr/api/',token_MF,'/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
+  # url_data <- paste0('https://geoservices.meteofrance.fr/api/',token_MF,'/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
   
-  # url_data <- paste0('https://public-api.meteofrance.fr/public/arome/1.0/wcs/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS/GetCoverage?SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&format=image/tiff&coverageId=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')')
-  # 
-  # téléchargement du tiff
-  #download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),mode="wb")
-  # download.file(url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl")
-  download.file.trycatch(url = url_data, 
-                         destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),
-                         method = "libcurl")
-  # download_retry(url = url_data, destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),method = "libcurl", N.TRIES = 10)
-  # resoudre probleme fail dl ? https://cran.r-project.org/web/packages/downloader/downloader.pdf
+  # url_data <- paste0('https://public-api.meteofrance.fr/public/arome/1.0/wcs/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS/GetCoverage?service=WCS&version=2.0.1&coverageid=',indic,'___',ref_time,'Z_PT1H&subset=time(',time,'Z)&subset=lat(',bornes_lat,')&subset=long(',bornes_long,')&format=image%2Ftiff')
   
+  url_data <- paste0('https://public-api.meteofrance.fr/public/arome/1.0/wcs/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS/GetCoverage?service=WCS&version=2.0.1&coverageid=',indic,'___',ref_time,'Z_PT1H&subset=time%28',time,'Z%29%26lat%28',bornes_lat,'%29%26long%28',bornes_long,'%29&format=image%2Ftiff')
+  
+  download.file.trycatch(url = url_data,
+                         destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
+  
+  # download.file(url = url_data, 
+  #               destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),
+  #               headers = c(apikey=MF_TOKEN))
+
   
 }
 
 # liste des 24 heures en caractere
 liste_H <- seq(0,24,1) %>% as.character() %>% str_pad(., 2, pad = "0")
-print(liste_H)
+
 # recupéreration de tous les tiffs (sauf h00)
 liste_H[-1] %>% purrr::map(dl_tiff)
 
@@ -157,14 +181,17 @@ liste_H[-1] %>% purrr::map(dl_tiff)
 rd_tiff <- function(H){
   
     # horaire + 1 heure pour récupérer les precipitations tombées dans l'heure précédente
-    time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
-      mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+    # time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
+    #   mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+  time <- data_frame(time = paste0( jour_j1,'T',H,'%3A00%3A00')) %>%
+    mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00%3A00%3A00'), time)) %>% as.character()
 
     # quantité de précipitation
     indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
     modele <- '001'
   
-  tif <- readGDAL(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
+  # tif <- readGDAL(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
+    tif <- readGDAL(paste0('./tiff/tiff_',indic,'_',ref_time,'_',time, '.tiff'))
   #transformation en raster en proj wgs 84 avec bornes lat/long
   gridded(tif) <- TRUE
   r <- raster(tif)
@@ -189,15 +216,19 @@ liste_H[-1] %>% purrr::map(rd_tiff)
 rm_tiff <- function(H){
   
     # horaire + 1 heure pour récupérer les precipitations tombées dans l'heure précédente
-    time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
-      mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+    # time <- data_frame(time = paste0( jour_j1,'T',H,':00:00')) %>%
+    #   mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00:00:00'), time)) %>% as.character()
+    time <- data_frame(time = paste0( jour_j1,'T',H,'%3A00%3A00')) %>%
+      mutate(time = ifelse(H ==24,  paste0( jour_j2,'T00%3A00%3A00'), time)) %>% as.character()
 
     # quantité de précipitation
     indic <- 'TOTAL_PRECIPITATION__GROUND_OR_WATER_SURFACE'
     modele <- '001'
     
-  if (file.exists(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff')))
-    file.remove(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
+  # if (file.exists(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff')))
+  #   file.remove(paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
+    if (file.exists(paste0('./tiff/tiff_',indic,'_',ref_time,'_',time, '.tiff')))
+      file.remove(paste0('./tiff/tiff_',indic,'_',ref_time,'_',time, '.tiff'))
   
 }
 
@@ -304,9 +335,6 @@ list.files(path = "./img", pattern = paste0("carto_pluie_cumul_",jour_j1), full.
 
 
 # authentication du compte twitter
-# http://rtweet.info/articles/auth.html
-## store api keys (these are fake example values; replace with your own keys)
-
 
 pluiff_token <- rtweet::create_token(
   app = "rtweet_plouif",
