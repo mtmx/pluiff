@@ -40,8 +40,8 @@ jobs:
       run: |
         git config --local user.name actions-user
         git config --local user.email "actions@github.com"
-        git add data/*
-        git commit -am "GH ACTION OK $(date)"
+        git add gif/*
+        git commit -am "pluiff OK $(date)"
         git push origin master
       env:
         REPO_KEY: ${{secrets.TOKEN_GITHUB}}

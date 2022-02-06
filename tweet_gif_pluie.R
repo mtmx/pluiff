@@ -1,3 +1,6 @@
+# locale
+Sys.setlocale("LC_MESSAGES", 'fr_FR.UTF-8')
+Sys.setenv(LANG = "fr_FR.UTF-8")
 
 # chargement des libraires
 library(dplyr)
