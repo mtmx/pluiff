@@ -76,7 +76,7 @@ bornes_long <- paste0(as.character(lon_min),'%2C',as.character(lon_max))
 # }
 
 ## téléchargment avec relance après échec
-download.file.trycatch <- function(url, destfile){
+download.file.trycatch <- function(url, destfile,headers){
   tryCatch(
     # premier essai
     {
@@ -163,12 +163,17 @@ dl_tiff <- function(H){
   
   url_data <- paste0('https://public-api.meteofrance.fr/public/arome/1.0/wcs/MF-NWP-HIGHRES-AROME-',modele,'-FRANCE-WCS/GetCoverage?service=WCS&version=2.0.1&coverageid=',indic,'___',ref_time,'Z_PT1H&subset=time%28',time,'Z%29%26lat%28',bornes_lat,'%29%26long%28',bornes_long,'%29&format=image%2Ftiff')
   
-  download.file.trycatch(url = url_data,
-                         destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
+  # download.file.trycatch(url = url_data,
+  #                        destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'))
   
-  # download.file(url = url_data, 
+  # download.file(url = url_data,
   #               destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),
   #               headers = c(apikey=MF_TOKEN))
+
+
+  download.file.trycatch(url = url_data,
+                         destfile = paste0('./tiff/tiff_',indic,'_',gsub(':','-', ref_time),'_',gsub(':','-', time), '.tiff'),
+                                       headers = c(apikey=MF_TOKEN))
 
   
 }
