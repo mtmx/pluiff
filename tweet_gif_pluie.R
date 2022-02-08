@@ -1,5 +1,4 @@
-# locale
-Sys.setlocale("LC_MESSAGES", 'fr_FR.UTF-8')
+# lang
 Sys.setenv(LANG = "fr_FR.UTF-8")
 
 # chargement des libraires
