@@ -28,9 +28,8 @@ jobs:
      # Set-up R
     - name: Install packages
       run: |
-        install.packages(c("remotes", "stringr", "dplyr","magick","rtweet", "lubridate", "raster", "rgdal", "scales", "animation","png", "fields", "cartography", "purrr"),type="binary")
-        install.packages("rtweet", repos = 'https://ropensci.r-universe.dev')
-        remotes::install_github("r-spatial/sf")
+        install.packages(c("remotes", "stringr", "dplyr","magick","sf", "lubridate", "raster", "rgdal", "scales", "animation","png", "fields", "cartography", "purrr"),type="binary")
+        remotes::install_version("rtweet", version = "0.7.0", repos = "http://cran.us.r-project.org")
       shell: Rscript {0}
 
     # Run R script
